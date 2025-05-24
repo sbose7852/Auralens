@@ -1,0 +1,6 @@
+# AuraLens/.gitignore
+
+config.js
+node_modules/
+*.log
+# Add other files/folders you don't want to commit
