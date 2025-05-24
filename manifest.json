@@ -10,11 +10,11 @@
     "scripting"
   ],
   "host_permissions": [
-    "https://api.openai.com/*", // If you were using OpenAI, keep or remove
-    "https://generativelanguage.googleapis.com/*" // Add this for Gemini
+    "https://generativelanguage.googleapis.com/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js", // Only list your main service worker
+    "type": "module" // Make the service worker an ES module
   },
   "action": {
     "default_popup": "popup.html",
@@ -27,8 +27,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": []
+      "js": ["content.js"]
     }
   ],
   "icons": {
