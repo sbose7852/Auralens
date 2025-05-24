@@ -1,0 +1,40 @@
+body {
+  font-family: sans-serif;
+  width: 250px;
+  padding: 10px;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+.container {
+  text-align: center;
+}
+
+h1 {
+  font-size: 1.2em;
+  color: #007bff;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 10px 0;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+#voiceStatus {
+  font-size: 0.9em;
+  color: #555;
+}
