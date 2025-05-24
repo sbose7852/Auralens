@@ -1,12 +1,17 @@
+// AuraLens/background.js
+
+// Import the API key from config.js
+import { GEMINI_API_KEY } from './config.js'; // Note the './' for relative path
+
 // --- !!! IMPORTANT SECURITY WARNING !!! ---
-// DO NOT hardcode your real API key here in a production extension or public repository.
-// For a hackathon, this might be a temporary shortcut, but it's very insecure.
-// Ideally, use a backend proxy to make API calls and store the key securely.
+// The API key is now in config.js. Ensure config.js is in .gitignore
+// and NOT committed to your repository.
 // --- !!! REVOKE THE KEY YOU POSTED PUBLICLY IMMEDIATELY !!! ---
-const GEMINI_API_KEY = "YOUR_NEW_REPLACEMENT_GEMINI_API_KEY"; // << REPLACE THIS!
+
 
 // --- Context Menu for Image Description ---
 chrome.runtime.onInstalled.addListener(() => {
+  // ... (rest of your onInstalled listener)
   chrome.contextMenus.create({
     id: "describeImageAuraLens",
     title: "AuraLens: Describe Image (Gemini)",
@@ -24,7 +29,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       });
 
       try {
+        // Pass the imported GEMINI_API_KEY to the function
         const description = await getGeminiImageDescription(info.srcUrl, GEMINI_API_KEY);
+        // ... (rest of the try block)
         chrome.tabs.sendMessage(tab.id, {
           command: "showImageDescription",
           description: description,
@@ -32,6 +39,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         });
 
       } catch (error) {
+        // ... (rest of your catch block)
         console.error("AuraLens Error fetching Gemini image description:", error);
         let errorMessage = `Error: ${error.message}`;
         if (error.responseBody && error.responseBody.error && error.responseBody.error.message) {
@@ -47,17 +55,18 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
+// The getGeminiImageDescription function remains the same,
+// as it already accepts apiKey as a parameter.
 async function getGeminiImageDescription(imageUrl, apiKey) {
-  if (!apiKey || apiKey === "YOUR_NEW_REPLACEMENT_GEMINI_API_KEY") {
-    console.error("Gemini API Key is not set or is still the placeholder!");
-    return "Error: Gemini API Key not configured.";
+  if (!apiKey || apiKey === "YOUR_NEW_SECURE_GEMINI_API_KEY_HERE" /* Check against placeholder in config.js */ ) {
+    console.error("Gemini API Key is not set or is still the placeholder in config.js!");
+    return "Error: Gemini API Key not configured. Please check config.js.";
   }
-
-  const model = "gemini-pro-vision"; // Or the latest vision model
+  // ... (rest of the getGeminiImageDescription function)
+  const model = "gemini-pro-vision";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   try {
-    // 1. Fetch the image data and convert to base64
     const imageResponse = await fetch(imageUrl);
     if (!imageResponse.ok) {
       throw new Error(`Failed to fetch image: ${imageResponse.status} ${imageResponse.statusText}`);
@@ -65,7 +74,7 @@ async function getGeminiImageDescription(imageUrl, apiKey) {
     const blob = await imageResponse.blob();
     const base64ImageData = await new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result.split(',')[1]); // Get base64 part
+      reader.onloadend = () => resolve(reader.result.split(',')[1]);
       reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
@@ -76,20 +85,20 @@ async function getGeminiImageDescription(imageUrl, apiKey) {
           { "text": "Describe this image in detail for accessibility purposes. Focus on objects, actions, and context. If there's text, include it." },
           {
             "inline_data": {
-              "mime_type": blob.type || "image/jpeg", // Use actual mime type from blob
+              "mime_type": blob.type || "image/jpeg",
               "data": base64ImageData
             }
           }
         ]
       }],
-      "generationConfig": { // Optional: configure output
+      "generationConfig": {
         "temperature": 0.4,
         "topK": 32,
         "topP": 1,
-        "maxOutputTokens": 4096, // Adjust as needed
+        "maxOutputTokens": 4096,
         "stopSequences": []
       },
-      "safetySettings": [ // Adjust safety settings as needed
+      "safetySettings": [
         { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE" },
         { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE" },
         { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE" },
@@ -97,7 +106,6 @@ async function getGeminiImageDescription(imageUrl, apiKey) {
       ]
     };
 
-    // 2. Make the API call to Gemini
     const geminiResponse = await fetch(url, {
       method: "POST",
       headers: {
@@ -112,13 +120,10 @@ async function getGeminiImageDescription(imageUrl, apiKey) {
       console.error("Gemini API Error Response:", responseData);
       const errorDetail = responseData.error ? responseData.error.message : `HTTP error ${geminiResponse.status}`;
       const customError = new Error(`Gemini API Error: ${errorDetail}`);
-      customError.responseBody = responseData; // Attach full response for more context
+      customError.responseBody = responseData;
       throw customError;
     }
 
-    // Extract the text description
-    // The structure might vary slightly based on exact API version or if multiple candidates are returned.
-    // Check Gemini API documentation for the most up-to-date response structure.
     if (responseData.candidates && responseData.candidates.length > 0 &&
         responseData.candidates[0].content && responseData.candidates[0].content.parts &&
         responseData.candidates[0].content.parts.length > 0 &&
@@ -131,19 +136,16 @@ async function getGeminiImageDescription(imageUrl, apiKey) {
 
   } catch (error) {
     console.error("Error in getGeminiImageDescription:", error);
-    // Re-throw the error so the calling function can catch it and display a message to the user
-    // Or handle it here by returning a specific error string
-    throw error; // This allows the calling function to access error.responseBody if set
+    throw error;
   }
 }
 
 
-// --- Listening for potential messages from content script (e.g., if needing background processing) ---
+// --- Listening for potential messages from content script ---
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.command === "logBackground") {
     console.log("AuraLens Background:", request.data);
     sendResponse({ status: "Logged from background" });
-    return true; // Indicates you wish to send a response asynchronously
+    return true;
   }
-  // Add more message handlers if needed
 });
