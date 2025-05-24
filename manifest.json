@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "AuraLens - AI Accessibility Companion",
+  "version": "0.1.0",
+  "description": "AI-powered tools to make the web more accessible.",
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://api.openai.com/*", // If you were using OpenAI, keep or remove
+    "https://generativelanguage.googleapis.com/*" // Add this for Gemini
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": []
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
